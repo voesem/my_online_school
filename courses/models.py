@@ -24,7 +24,7 @@ class Lesson(models.Model):
     image = models.ImageField(upload_to='courses/', verbose_name='превью', **NULLABLE)
     url = models.URLField(verbose_name='ссылка на видео', **NULLABLE)
     course = models.ForeignKey(
-        Course, on_delete=models.CASCADE, null=True, blank=True, verbose_name='курс', related_name='course'
+        Course, on_delete=models.CASCADE, null=True, blank=True, verbose_name='курс', related_name='lesson'
     )
 
     def __str__(self):
