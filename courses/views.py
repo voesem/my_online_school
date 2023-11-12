@@ -4,6 +4,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 
 from courses.models import Course, Lesson, Payment, Subscription
+from courses.paginators import CoursePaginator, LessonPaginator
 from courses.permissions import IsOwner, IsModerator, IsNotModerator, IsSubscriber
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentListSerializer, SubscriptionSerializer
 
@@ -11,6 +12,7 @@ from courses.serializers import CourseSerializer, LessonSerializer, PaymentListS
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CoursePaginator
 
     def get_queryset(self):
 
@@ -48,6 +50,7 @@ class LessonCreateAPIView(generics.CreateAPIView):
 
 class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializer
+    pagination_class = LessonPaginator
 
     def get_queryset(self):
         if self.request.user.groups.filter(name='Модераторы').exists():
