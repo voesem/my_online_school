@@ -5,12 +5,14 @@ from courses.validators import URLValidator
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    url = serializers.CharField(validators=[URLValidator], required=False)
+
     class Meta:
         model = Lesson
         fields = '__all__'
-        validators = [
-            URLValidator(field='url'),
-        ]
+        # validators = [
+        #     URLValidator(field='url'),
+        # ]
 
 
 class CourseSerializer(serializers.ModelSerializer):
