@@ -10,6 +10,8 @@ from courses.serializers import CourseSerializer, LessonSerializer, PaymentListS
 
 
 class CourseViewSet(viewsets.ModelViewSet):
+    """ Представление курсов """
+
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = CoursePaginator
@@ -22,61 +24,78 @@ class CourseViewSet(viewsets.ModelViewSet):
         return Course.objects.filter(owner=self.request.user)
 
     def get_permissions(self):
+        """ Права доступа для разных категорий пользователей """
 
         permission_classes = ()
 
         if self.action == 'create':
-            permission_classes = (IsNotModerator,)
+            permission_classes = (IsNotModerator,)  # Модератор не может создавать курсы
 
         elif self.action == 'destroy':
-            permission_classes = (IsOwner,)
+            permission_classes = (IsOwner,)  # Удалять курсы может только владелец
 
         elif self.action == 'update' or self.action == 'partial_update':
-            permission_classes = (IsNotModerator,)
+            permission_classes = (IsNotModerator,)  # Модератор не может редактировать курсы
 
         return [permission() for permission in permission_classes]
 
     def perform_create(self, serializer):
+        """ При создании курса устанавливается связь с текущим пользователем """
+
         serializer.save(owner=self.request.user)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
+    """ Создание уроков """
+
     serializer_class = LessonSerializer
     permission_classes = [IsNotModerator]
 
     def perform_create(self, serializer):
+        """ При создании урока устанавливается связь с текущим пользователем """
+
         serializer.save(owner=self.request.user)
 
 
 class LessonListAPIView(generics.ListAPIView):
+    """ Список уроков """
+
     serializer_class = LessonSerializer
     pagination_class = LessonPaginator
 
     def get_queryset(self):
         if self.request.user.groups.filter(name='Модераторы').exists():
-            return Lesson.objects.all()
+            return Lesson.objects.all()  # Модераторам доступен список всех уроков
 
-        return Lesson.objects.filter(owner=self.request.user)
+        return Lesson.objects.filter(owner=self.request.user)  # Обычным пользователям доступны только их уроки
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
+    """ Просмотр уроков """
+
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsOwner | IsModerator]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
+    """ Редактирование уроков """
+
     serializer_class = LessonSerializer
     queryset = Lesson.objects.all()
     permission_classes = [IsNotModerator]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
+    """ Удаление уроков """
+
     queryset = Lesson.objects.all()
     permission_classes = [IsNotModerator]
 
 
 class PaymentListAPIView(generics.ListAPIView):
+    """ Список платежей уроков """
+
     serializer_class = PaymentListSerializer
     queryset = Payment.objects.all()
 
@@ -86,10 +105,14 @@ class PaymentListAPIView(generics.ListAPIView):
 
 
 class SubscriptionCreateAPIView(generics.CreateAPIView):
+    """ Создание подписки """
+
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
 
     def perform_create(self, serializer, *args, **kwargs):
+        """ При создании подписки устанавливается связь с текущим пользователем и курсом """
+
         new_subscription = serializer.save()
         new_subscription.user = self.request.user
         pk = self.kwargs.get('pk')
@@ -98,6 +121,8 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
 
 
 class SubscriptionDestroyAPIView(generics.DestroyAPIView):
+    """ Удаление подписки """
+
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
     permission_classes = [IsSubscriber]

@@ -6,9 +6,13 @@ from users.serializers import UserSerializer, MyTokenObtainPairSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
+    """ Представление пользователей """
+
     serializer_class = UserSerializer
     queryset = User.objects.all()
 
 
 class MyTokenObtainPairView(TokenObtainPairView):
+    """ Получение токена при авторизации """
+
     serializer_class = MyTokenObtainPairSerializer
