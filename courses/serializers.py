@@ -40,6 +40,17 @@ class PaymentListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PaymentSerializer(serializers.ModelSerializer):
+    # payment_intent_id = serializers.SerializerMethodField(read_only=True)
+    #
+    # def get_payment_intent_id(self, instance):
+    #     return self.context.get('id')
+
+    class Meta:
+        model = Payment
+        fields = '__all__'
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
