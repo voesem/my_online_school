@@ -1,40 +1,42 @@
-import requests
 import stripe
 from django.conf import settings
 
 stripe.api_key = settings.STRIPE_API_KEY
 
 
-# def create_customer(user):
-#     customer = stripe.Customer.create(
-#         email=user.email
+# def checkout_session(payment):
+#     checkout_session = stripe.checkout.Session.create(
+#         payment_method_types=['card'],
+#         line_items=[
+#             {
+#                 'price_data': {
+#                     'currency': 'rub',
+#                     'unit_amount': payment['summ'],
+#                     'product_data': {
+#                         'name': payment['course'],
+#                     },
+#                 },
+#                 'quantity': 1
+#             }
+#         ],
+#         mode='payment',
+#         success_url=settings.DOMAIN + '?session_id={CHECKOUT_SESSION_ID}',
+#         cancel_url=settings.DOMAIN
 #     )
 #
-#     return customer
-
-def checkout_session(course, user):
-    headers = {'Authorization': f'Bearer {stripe.api_key}'}
-    data = [
-        ('amount', course.amount),
-        ('currency', 'rub'),
-    ]
-
-    response = requests.post(f'{settings.STRIPE_URL}/payment_intents', headers=headers, data=data)
-
-    if response.status_code != 200:
-        raise Exception(f'ошибка : {response.json()["error"]["message"]}')
-
-    return response.json()
+#     return checkout_session
 
 
-def create_payment(amount, customer, instance):
+def create_payment(amount, instance):
     """ Создание платежа Stripe API """
 
     payment_intent = stripe.PaymentIntent.create(
+        payment_method_types=['card'],
         amount=amount,
-        currency="rub",
-        automatic_payment_methods={"enabled": True},
-        description=f'Оплата за {instance} от {customer}'
+        currency='rub',
+        confirm=True,
+        payment_method='pm_card_visa',
+        description=f'Оплата за {instance}'
     )
 
     return payment_intent
