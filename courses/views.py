@@ -10,7 +10,7 @@ from courses.paginators import CoursePaginator, LessonPaginator
 from courses.permissions import IsOwner, IsModerator, IsNotModerator, IsSubscriber
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentListSerializer, SubscriptionSerializer, \
     PaymentSerializer
-from courses.services import create_payment, get_payment, checkout_session
+from courses.services import create_payment, get_payment
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -102,45 +102,25 @@ class PaymentCreateView(generics.CreateAPIView):
 
     serializer_class = PaymentSerializer
 
+    def perform_create(self, serializer):
+        """ При создании платежа устанавливается связь с текущим пользователем """
+
+        serializer.save(user=self.request.user)
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        session = checkout_session(
-            course=serializer.validated_data['course'],
-            user=self.request.user
-        )
-
         serializer.save()
 
-        create_payment(
-            amount=serializer.validated_data['summ']
+        # Создание объекта Payment Intent Stripe API
+        payment = create_payment(
+            amount=serializer.validated_data['summ'],
+            instance=serializer.validated_data['course'],
         )
 
-        return Response(session['id'], status=status.HTTP_201_CREATED)
-
-    # def perform_create(self, serializer):
-    #
-    #     serializer.save(user=self.request.user)  # При создании платежа устанавливается связь с текущим пользователем
-    #
-    #     payment = serializer.save()
-    #
-    #     amount = payment.summ
-    #     customer = payment.user
-    #     instance = payment.lesson
-    #
-    #     if payment.course:
-    #         instance = payment.course
-    #
-    #     payment_intent = create_payment(amount, customer, instance)  # Создание объекта PaymentIntent
-    #
-    #     payment_intent.save()
-    #
-    #     serializer.save(payment_intent_id=payment_intent)
-    #
-    #     payment.payment_intent_id = payment_intent
-    #
-    #     return super().perform_create(serializer)
+        # Вовзращает id платежа, который можно использовать при запросе ифнормации о платеже
+        return Response(payment['id'], status=status.HTTP_201_CREATED)
 
 
 class PaymentListAPIView(generics.ListAPIView):
@@ -157,10 +137,9 @@ class PaymentListAPIView(generics.ListAPIView):
 class GetPaymentView(APIView):
     """
     Получение информации о платеже.
-    get_payment: Получает информацию о платеже по его ID.
     """
 
-    def get_payment(self, request, payment_id):
+    def get(self, request, payment_id):
         payment_intent = get_payment(payment_id)
 
         return Response({'status': payment_intent.status})
