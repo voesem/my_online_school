@@ -11,6 +11,7 @@ from courses.permissions import IsOwner, IsModerator, IsNotModerator, IsSubscrib
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentListSerializer, SubscriptionSerializer, \
     PaymentSerializer
 from courses.services import create_payment, get_payment
+from courses.tasks import send_mail_user_update
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -47,6 +48,12 @@ class CourseViewSet(viewsets.ModelViewSet):
         """ При создании курса устанавливается связь с текущим пользователем """
 
         serializer.save(owner=self.request.user)
+
+    def perform_update(self, serializer):
+        """ При редактировании курса пользователю приходит уведомление """
+
+        self.object = serializer.save()
+        send_mail_user_update(self.object.pk)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
