@@ -19,6 +19,9 @@ coverage = "^7.3.2"
 drf-yasg = "^1.21.7"
 stripe = "^7.5.0"
 requests = "^2.31.0"
+celery = "^5.3.6"
+redis = "^5.0.1"
+django-celery-beat = "^2.5.0"
 
 
 [build-system]
